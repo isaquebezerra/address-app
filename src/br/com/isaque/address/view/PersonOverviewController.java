@@ -2,7 +2,9 @@ package br.com.isaque.address.view;
 
 import br.com.isaque.address.MainApp;
 import br.com.isaque.address.model.Person;
+import br.com.isaque.address.util.DateUtil;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -41,8 +43,17 @@ public class PersonOverviewController {
     @FXML
     private void initialize() {
         // Inicializa a tablea de pessoa com duas colunas.
-        firstNameColumn.setCellValueFactory(cellData -> cellData.getValue().firstnameProperty());
-        lastNameColumn.setCellValueFactory(cellData -> cellData.getValue().lastnameProperty());
+        firstNameColumn.setCellValueFactory(
+                cellData -> cellData.getValue().firstnameProperty());
+        lastNameColumn.setCellValueFactory(
+                cellData -> cellData.getValue().lastnameProperty());
+
+        // Limpa os detalhes da pessoa.
+        showPersonDetails(null);
+
+        // Detecta mudanças de seleção e mostra os detalhes da pessoa quando houver mudança.
+        personTable.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> showPersonDetails(newValue));
     }
 
     /**
@@ -55,5 +66,47 @@ public class PersonOverviewController {
 
         // Adiciona os dados da observable list na tabela
         personTable.setItems(mainApp.getPersonData());
+    }
+
+    /**
+     * PReenche todos os campos de texto para mostrar detalhes sobre a pessoa.
+     * Se a pessoa especificada for null, todos os campos de texto são limpos.
+     */
+    private void showPersonDetails(Person person) {
+        if (person != null) {
+            // Preenche as labels com informações do objeto person.
+            firstNameLabel.setText(person.getFirstName());
+            lastNameLabel.setText(person.getLastName());
+            streetLabel.setText(person.getStreet());
+            postalCodeLabel.setText(Integer.toString(person.getPostalCode()));
+            cityLabel.setText(person.getCity());
+            birthdayLabel.setText(DateUtil.format(person.getBirthday()));
+        } else {
+            //Person é null, limpa as labels.
+            firstNameLabel.setText("");
+            lastNameLabel.setText("");
+            streetLabel.setText("");
+            postalCodeLabel.setText("");
+            cityLabel.setText("");
+            birthdayLabel.setText("");
+        }
+    }
+
+    @FXML
+    private void handleDeletePerson() {
+        int selectedIndex = personTable.getSelectionModel().getSelectedIndex();
+        if (selectedIndex >= 0) {
+            personTable.getItems().remove(selectedIndex);
+        } else {
+            // Nada selecionado.
+
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+
+            alert.setTitle("Nenhuma seleção");
+            alert.setHeaderText("Nenhuma Pessoa Selecionada");
+            alert.setContentText("Por favor, selecione uma pessoa na tabela.");
+
+            alert.showAndWait();
+        }
     }
 }
